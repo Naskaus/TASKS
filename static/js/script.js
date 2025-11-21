@@ -3,14 +3,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let state = {
         categories: [],
         people: [],
-        notes: [], // Flat list of notes
-        currentWeekStart: getLastFriday(new Date()) // Start on Friday as per image 
-        // Actually, let's stick to standard Monday start or user preference. 
-        // But the image explicitly shows Fri-Thu. Let's try to match that or just default to Monday for sanity, 
-        // but the user might want that specific cycle. 
-        // Let's default to Monday for now to be safe, unless I see a strong reason. 
-        // Wait, the image shows "Fri 21 - Thu 27". That's a 7 day cycle starting Friday.
-        // Let's implement a flexible start day. I'll use Friday as start day to match the image.
+        notes: [],
+        currentWeekStart: getLastFriday(new Date())
     };
 
     // DOM Elements
@@ -23,9 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     init();
 
     function init() {
-        // Set initial week start to the most recent Friday
         state.currentWeekStart = getLastFriday(new Date());
-
         fetchInitData();
         setupEventListeners();
     }
@@ -36,8 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
             state.categories = data.categories;
             state.people = data.people;
-
-            await fetchNotes(); // Fetch notes for current week
+            await fetchNotes();
             renderMatrix();
         } catch (error) {
             console.error('Error fetching init data:', error);
@@ -47,7 +38,6 @@ document.addEventListener('DOMContentLoaded', () => {
     async function fetchNotes() {
         const start = formatDate(state.currentWeekStart);
         const end = formatDate(addDays(state.currentWeekStart, 6));
-
         try {
             const response = await fetch(`/api/notes?start_date=${start}&end_date=${end}`);
             state.notes = await response.json();
@@ -57,28 +47,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Rendering ---
-
     function renderMatrix() {
         updateHeaderDates();
         matrixBody.innerHTML = '';
 
-        state.categories.forEach(cat => {
+        state.categories.forEach((cat, catIndex) => {
             const tasks = cat.tasks;
-            // If tasks is empty, we render a "dummy" row for adding
             const renderTasks = tasks.length > 0 ? tasks : [null];
 
             renderTasks.forEach((task, index) => {
                 const tr = document.createElement('tr');
+                tr.className = catIndex % 2 === 0 ? 'row-even' : 'row-odd';
 
-                // Category Cell (only on first row)
+                // Category Cell
                 if (index === 0) {
                     const catCell = document.createElement('td');
                     catCell.className = 'category-cell';
-                    catCell.rowSpan = renderTasks.length; // Corrected rowSpan
+                    catCell.rowSpan = renderTasks.length;
                     catCell.innerHTML = `
-                        <div class="category-label" style="color: ${cat.color}">
-                            <span class="category-indicator" style="background-color: ${cat.color}"></span>
-                            ${cat.name}
+                        <div class="category-label" style="background-color: ${cat.color}; border-color: ${cat.color}" onclick="editCategory(${cat.id})">
+                            ${cat.name} <i class="fas fa-pen" style="font-size: 0.8em; opacity: 0.5; margin-left: 5px;"></i>
                         </div>
                         <button class="add-task-btn" onclick="addTask(${cat.id})">+ ADD</button>
                     `;
@@ -92,12 +80,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Task Cell
                 const taskCell = document.createElement('td');
+                let taskNotesHtml = '';
+
                 if (task) {
+                    // Collect notes for preview
+                    for (let i = 0; i < 4; i++) {
+                        const date = addDays(state.currentWeekStart, i);
+                        const dateStr = formatDate(date);
+                        const note = state.notes.find(n => n.task_id === task.id && n.date === dateStr);
+                        if (note && note.content.trim() !== '') {
+                            const dayName = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][date.getDay()];
+                            taskNotesHtml += `<div class="task-note-preview"><span class="note-date">(${dayName} ${date.getDate()})</span> ${note.content}</div>`;
+                        }
+                    }
+
                     taskCell.innerHTML = `
                         <div class="task-input-container">
-                            <input type="checkbox" class="task-checkbox" ${task.done ? 'checked' : ''} onchange="toggleTask(${task.id}, this.checked)">
-                            <textarea class="task-text-input ${task.done ? 'done' : ''}" onblur="updateTaskText(${task.id}, this.value)" rows="1">${task.text}</textarea>
-                            <i class="fas fa-trash" style="cursor:pointer; color:#444; font-size:10px;" onclick="deleteTask(${task.id})"></i>
+                            <div class="task-main-row">
+                                <input type="checkbox" class="task-checkbox" ${task.done ? 'checked' : ''} onchange="toggleTask(${task.id}, this.checked)">
+                                <textarea class="task-text-input ${task.done ? 'done' : ''}" onblur="updateTaskText(${task.id}, this.value)" rows="1">${task.text}</textarea>
+                                <i class="fas fa-trash" style="cursor:pointer; color:#444; font-size:10px;" onclick="deleteTask(${task.id})"></i>
+                            </div>
+                            <div class="task-notes-container">
+                                ${taskNotesHtml}
+                            </div>
                         </div>
                     `;
                 } else {
@@ -105,8 +111,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 tr.appendChild(taskCell);
 
-                // Day Cells (7 days)
-                for (let i = 0; i < 7; i++) {
+                // Day Cells (4 days instead of 7)
+                for (let i = 0; i < 4; i++) {
                     const dayCell = document.createElement('td');
                     dayCell.className = 'note-cell';
 
@@ -114,10 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const date = addDays(state.currentWeekStart, i);
                         const dateStr = formatDate(date);
                         const note = state.notes.find(n => n.task_id === task.id && n.date === dateStr);
-
-                        dayCell.innerHTML = `
-                            <textarea class="note-textarea" data-task-id="${task.id}" data-date="${dateStr}" onblur="saveNote(this)">${note ? note.content : ''}</textarea>
-                        `;
+                        dayCell.innerHTML = `<textarea class="note-textarea" data-task-id="${task.id}" data-date="${dateStr}" onblur="saveNote(this)">${note ? note.content : ''}</textarea>`;
                     }
                     tr.appendChild(dayCell);
                 }
@@ -140,21 +143,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateHeaderDates() {
         const start = state.currentWeekStart;
         const end = addDays(start, 6);
-
-        // Update Month/Year
         const monthNames = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
         monthYearDisplay.textContent = `${monthNames[start.getMonth()]} ${start.getFullYear()}`;
-
-        // Update Range
         const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         weekRangeDisplay.textContent = `${daysShort[start.getDay()]} ${start.getDate()} - ${daysShort[end.getDay()]} ${end.getDate()}`;
 
-        // Update Column Headers
         dayHeaders.forEach((th, index) => {
             const date = addDays(start, index);
             th.textContent = `${daysShort[date.getDay()].toUpperCase()} ${date.getDate()}`;
-
-            // Highlight today
             const today = new Date();
             if (date.toDateString() === today.toDateString()) {
                 th.classList.add('is-today');
@@ -165,11 +161,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Actions ---
-
     window.addTask = async (categoryId) => {
         const text = prompt("New Task Description:");
         if (!text) return;
-
         try {
             await fetch('/api/tasks', {
                 method: 'POST',
@@ -180,6 +174,25 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error(error);
             alert("Error adding task");
+        }
+    };
+
+    window.editCategory = async (id) => {
+        const cat = state.categories.find(c => c.id === id);
+        if (!cat) return;
+        const newName = prompt("Edit Category Name:", cat.name);
+        if (newName !== null && newName !== cat.name) {
+            try {
+                await fetch(`/api/categories/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: newName })
+                });
+                fetchInitData();
+            } catch (error) {
+                console.error(error);
+                alert("Error updating category");
+            }
         }
     };
 
@@ -227,7 +240,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const taskId = textarea.dataset.taskId;
         const date = textarea.dataset.date;
         const content = textarea.value;
-
         try {
             await fetch('/api/notes', {
                 method: 'POST',
@@ -243,7 +255,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- Helpers ---
-
     function getLastFriday(d) {
         d = new Date(d);
         const day = d.getDay();
@@ -282,7 +293,6 @@ document.addEventListener('DOMContentLoaded', () => {
             fetchNotes().then(renderMatrix);
         });
 
-        // Modal Toggles
         const catModal = document.getElementById('category-modal');
         const teamModal = document.getElementById('team-modal');
 
@@ -303,7 +313,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // Header Actions
         document.getElementById('save-btn').addEventListener('click', async () => {
             try {
                 const response = await fetch('/api/backup');
@@ -357,7 +366,6 @@ document.addEventListener('DOMContentLoaded', () => {
             alert("PDF Export feature coming soon!");
         });
 
-        // Forms
         document.getElementById('category-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('cat-name').value;

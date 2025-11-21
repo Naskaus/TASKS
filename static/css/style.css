@@ -58,7 +58,6 @@ body {
 .logo h2 {
     font-size: 24px;
     color: #d63384;
-    /* Pinkish from image */
     text-transform: uppercase;
     margin-top: 5px;
 }
@@ -140,7 +139,6 @@ body {
 
 .matrix-container {
     min-width: 1200px;
-    /* Force scroll on small screens */
 }
 
 #matrix-table {
@@ -178,14 +176,12 @@ body {
 }
 
 .col-task {
-    width: 300px;
+    width: 450px;
 }
 
 .col-day {
     width: 12%;
 }
-
-/* Remaining space divided by 7 */
 
 /* Highlight Today */
 th.is-today {
@@ -196,24 +192,37 @@ th.is-today {
 
 /* Category Row Styling */
 .category-cell {
-    background-color: #000;
+    background-color: #000 !important;
     border-right: 1px solid var(--grid-line);
     position: relative;
+    z-index: 2;
 }
 
 .category-label {
-    font-weight: bold;
-    font-size: 11px;
+    font-weight: 900;
+    font-size: 14px;
     display: flex;
     align-items: center;
-    gap: 5px;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px;
+    border-radius: 4px;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: transform 0.2s;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.category-label:hover {
+    transform: scale(1.02);
+    filter: brightness(1.1);
 }
 
 .category-indicator {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    display: inline-block;
+    display: none;
 }
 
 .add-task-btn {
@@ -234,11 +243,27 @@ th.is-today {
     color: #fff;
 }
 
+/* Row Gradients */
+.row-even td {
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.02), rgba(0, 0, 0, 0));
+}
+
+.row-odd td {
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(255, 255, 255, 0.01));
+}
+
 /* Task Inputs */
 .task-input-container {
     display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.task-main-row {
+    display: flex;
     align-items: flex-start;
     gap: 8px;
+    width: 100%;
 }
 
 .task-checkbox {
@@ -252,8 +277,9 @@ th.is-today {
     border: none;
     color: #fff;
     width: 100%;
-    font-family: inherit;
+    font-family: 'Impact', sans-serif;
     font-size: 13px;
+    letter-spacing: 0.5px;
     resize: none;
     overflow: hidden;
 }
@@ -266,6 +292,7 @@ th.is-today {
 .task-text-input.done {
     text-decoration: line-through;
     color: var(--text-muted);
+    opacity: 0.6;
 }
 
 /* Who Select */
@@ -301,6 +328,28 @@ th.is-today {
 .note-textarea:focus {
     outline: none;
     background-color: #0a0a0a;
+}
+
+/* Note Previews */
+.task-notes-container {
+    margin-top: 2px;
+    padding-left: 28px;
+    width: 100%;
+}
+
+.task-note-preview {
+    font-size: 11px;
+    color: #3498db;
+    margin-bottom: 2px;
+    line-height: 1.2;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.note-date {
+    color: #888;
+    font-weight: bold;
+    margin-right: 4px;
+    font-size: 10px;
 }
 
 /* Modals */
@@ -374,4 +423,56 @@ th.is-today {
 .manage-list li i {
     cursor: pointer;
     color: #e74c3c;
+}
+
+/* Mobile Optimization */
+@media (max-width: 768px) {
+    .main-header {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+
+    .week-nav {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .header-controls {
+        width: 100%;
+        justify-content: space-between;
+        overflow-x: auto;
+        padding-bottom: 5px;
+    }
+
+    .header-controls button {
+        flex: 1;
+        min-width: 60px;
+    }
+
+    .task-text-input,
+    .note-textarea {
+        font-size: 16px;
+        min-height: 40px;
+    }
+
+    .task-checkbox {
+        transform: scale(1.5);
+        margin-top: 8px;
+    }
+
+    .col-category {
+        position: sticky;
+        left: 0;
+        z-index: 5;
+        background-color: #000;
+        border-right: 2px solid #333;
+    }
+
+    .category-cell {
+        position: sticky;
+        left: 0;
+        z-index: 5;
+        border-right: 2px solid #333;
+    }
 }
