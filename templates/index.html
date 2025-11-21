@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEB OPS SYSTEM v5</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="main-header">
+            <div class="logo">
+                <h1>SEB OPS <span class="version">SYSTEM v5</span></h1>
+                <h2 id="month-year-display">NOVEMBER</h2>
+            </div>
+
+            <div class="week-nav">
+                <button id="prev-week"><i class="fas fa-chevron-left"></i></button>
+                <span id="week-range-display">Fri 21 - Thu 27</span>
+                <button id="next-week"><i class="fas fa-chevron-right"></i></button>
+                <button id="today-btn" class="btn-pill">TODAY</button>
+            </div>
+
+            <div class="header-controls">
+                <button id="team-btn" title="Team"><i class="fas fa-user-plus"></i><br><span>TEAM</span></button>
+                <button id="cat-btn" title="Categories"><i class="fas fa-layer-group"></i><br><span>CAT</span></button>
+                <button id="pdf-btn" title="Export PDF"><i class="fas fa-file-pdf"></i><br><span>PDF</span></button>
+                <button id="save-btn" title="Save/Backup"><i class="fas fa-save"></i><br><span>SAVE</span></button>
+                <button id="load-btn" title="Load/Restore"><i class="fas fa-upload"></i><br><span>LOAD</span></button>
+                <input type="file" id="restore-file-input" style="display: none;" accept=".json">
+            </div>
+        </header>
+
+        <!-- Matrix Table -->
+        <main class="main-content">
+            <div class="matrix-container">
+                <table id="matrix-table">
+                    <thead>
+                        <tr>
+                            <th class="col-category">CATEGORY</th>
+                            <th class="col-who">WHO?</th>
+                            <th class="col-task">TASK</th>
+                            <th class="col-day" data-day-index="0">FRI 21</th>
+                            <th class="col-day" data-day-index="1">SAT 22</th>
+                            <th class="col-day" data-day-index="2">SUN 23</th>
+                            <th class="col-day" data-day-index="3">MON 24</th>
+                            <th class="col-day" data-day-index="4">TUE 25</th>
+                            <th class="col-day" data-day-index="5">WED 26</th>
+                            <th class="col-day" data-day-index="6">THU 27</th>
+                        </tr>
+                    </thead>
+                    <tbody id="matrix-body">
+                        <!-- Rows injected by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </main>
+
+        <!-- Modals -->
+        <div id="category-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h2>Manage Categories</h2>
+                <form id="category-form">
+                    <input type="text" id="cat-name" placeholder="Category Name" required>
+                    <input type="color" id="cat-color" value="#ff0000">
+                    <button type="submit" class="btn-primary">Add</button>
+                </form>
+                <ul id="category-list" class="manage-list"></ul>
+            </div>
+        </div>
+
+        <div id="team-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h2>Manage Team</h2>
+                <form id="team-form">
+                    <input type="text" id="person-name" placeholder="Name" required>
+                    <button type="submit" class="btn-primary">Add</button>
+                </form>
+                <ul id="team-list" class="manage-list"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+
+</html>
