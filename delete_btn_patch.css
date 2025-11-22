@@ -1,0 +1,15 @@
+/* Custom styling for delete buttons - smaller and discreet */
+.manage-list li i {
+    cursor: pointer;
+    color: #666;
+    font-size: 11px;
+    padding: 3px 5px;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+}
+
+.manage-list li i:hover {
+    color: #ff6b6b;
+    background: rgba(255, 107, 107, 0.1);
+    transform: scale(1.1);
+}

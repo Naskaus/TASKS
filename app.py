@@ -1,8 +1,15 @@
 import os
 import json
 from datetime import datetime, timedelta
+from io import BytesIO
 from flask import Flask, render_template, request, jsonify, send_file
 from models import db, Category, Person, Task, Note
+from reportlab.lib.pagesizes import letter
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.enums import TA_CENTER
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///ops.db'
@@ -205,6 +212,175 @@ def restore_db():
         return jsonify({'success': True})
     except Exception as e:
         db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+# --- API: PDF EXPORT ---
+@app.route('/api/export-pdf', methods=['GET'])
+def export_pdf():
+    """Generate a print-friendly PDF with Category, Who?, and Task columns"""
+    try:
+        # Get current week info from query params or default to current week
+        week_start_str = request.args.get('week_start')
+        if week_start_str:
+            week_start = datetime.strptime(week_start_str, '%Y-%m-%d')
+        else:
+            # Default to last Friday
+            today = datetime.now()
+            day = today.weekday()
+            diff = (day + 2) % 7
+            week_start = today - timedelta(days=diff)
+        
+        week_end = week_start + timedelta(days=6)
+        
+        # Fetch all categories with tasks
+        categories = Category.query.order_by(Category.order).all()
+        people_dict = {p.id: p.name for p in Person.query.all()}
+        
+        # Fetch notes for the current week
+        notes = Note.query.filter(
+            Note.date >= week_start.strftime('%Y-%m-%d'),
+            Note.date <= week_end.strftime('%Y-%m-%d')
+        ).all()
+        notes_by_task = {}
+        for note in notes:
+            if note.task_id not in notes_by_task:
+                notes_by_task[note.task_id] = []
+            notes_by_task[note.task_id].append(note)
+        
+        # Create PDF in memory
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=letter, 
+                               topMargin=0.5*inch, bottomMargin=0.5*inch,
+                               leftMargin=0.75*inch, rightMargin=0.75*inch)
+        
+        # Container for PDF elements
+        elements = []
+        
+        # Styles
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=18,
+            textColor=colors.black,
+            spaceAfter=6,
+            alignment=TA_CENTER,
+            fontName='Helvetica-Bold'
+        )
+        
+        month_style = ParagraphStyle(
+            'MonthStyle',
+            parent=styles['Heading2'],
+            fontSize=14,
+            textColor=colors.HexColor('#d63384'),
+            spaceAfter=4,
+            alignment=TA_CENTER,
+            fontName='Helvetica-Bold'
+        )
+        
+        week_style = ParagraphStyle(
+            'WeekStyle',
+            parent=styles['Normal'],
+            fontSize=11,
+            textColor=colors.darkgray,
+            spaceAfter=20,
+            alignment=TA_CENTER
+        )
+        
+        category_style = ParagraphStyle(
+            'CategoryStyle',
+            parent=styles['Heading3'],
+            fontSize=12,
+            textColor=colors.black,
+            spaceAfter=8,
+            spaceBefore=12,
+            fontName='Helvetica-Bold',
+            leftIndent=0
+        )
+        
+        task_style = ParagraphStyle(
+            'TaskStyle',
+            parent=styles['Normal'],
+            fontSize=10,
+            textColor=colors.black,
+            leftIndent=20,
+            spaceAfter=4
+        )
+        
+        note_style = ParagraphStyle(
+            'NoteStyle',
+            parent=styles['Normal'],
+            fontSize=9,
+            textColor=colors.HexColor('#3498db'),
+            leftIndent=20
+        )
+        
+        # Header with just Month and Week
+        month_names = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE",
+                      "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"]
+        month_text = f"{month_names[week_start.month - 1]} {week_start.year}"
+        elements.append(Paragraph(month_text, month_style))
+        
+        days_short = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+        week_text = f"{days_short[week_start.weekday()]} {week_start.day} - {days_short[week_end.weekday()]} {week_end.day}"
+        elements.append(Paragraph(week_text, week_style))
+        
+        # Content - Categories and Tasks
+        for category in categories:
+            if len(category.tasks) == 0:
+                continue
+                
+            # Category header
+            elements.append(Paragraph(category.name.upper(), category_style))
+            
+            # Tasks under this category
+            for task in category.tasks:
+                # Task line with WHO? and text
+                who = people_dict.get(task.person_id, '--')
+                task_text = f"<b>[{who}]</b> {task.text}"
+                if task.done:
+                    task_text = f"<strike>{task_text}</strike>"
+                elements.append(Paragraph(task_text, task_style))
+                
+                # Note previews for this task
+                if task.id in notes_by_task:
+                    for note in notes_by_task[task.id]:
+                        if note.content.strip():
+                            note_date = datetime.strptime(note.date, '%Y-%m-%d')
+                            day_name = days_short[note_date.weekday()]
+                            note_text = f"({day_name} {note_date.day}) {note.content}"
+                            elements.append(Paragraph(note_text, note_style))
+                
+                elements.append(Spacer(1, 0.1*inch))
+        
+        # Footer - App name small at bottom
+        footer_style = ParagraphStyle(
+            'FooterStyle',
+            parent=styles['Normal'],
+            fontSize=8,
+            textColor=colors.gray,
+            alignment=TA_CENTER,
+            spaceBefore=20
+        )
+        elements.append(Spacer(1, 0.3*inch))
+        elements.append(Paragraph("SEB OPS SYSTEM v5", footer_style))
+        
+        # Build PDF
+        doc.build(elements)
+        
+        # Get PDF from buffer
+        buffer.seek(0)
+        
+        # Generate filename with date
+        filename = f"SEB_OPS_{week_start.strftime('%Y-%m-%d')}.pdf"
+        
+        return send_file(
+            buffer,
+            mimetype='application/pdf',
+            as_attachment=False
+        )
+        
+    except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':

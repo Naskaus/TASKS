@@ -68,8 +68,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="category-label" style="background-color: ${cat.color}; border-color: ${cat.color}" onclick="editCategory(${cat.id})">
                             ${cat.name} <i class="fas fa-pen" style="font-size: 0.8em; opacity: 0.5; margin-left: 5px;"></i>
                         </div>
-                        <button class="add-task-btn" onclick="addTask(${cat.id})">+ ADD</button>
+                        <button class="add-task-btn" data-category-id="${cat.id}">+ ADD</button>
                     `;
+                    // Attach event listener after rendering
+                    const addBtn = catCell.querySelector('.add-task-btn');
+                    if (addBtn) addBtn.addEventListener('click', () => window.addTask(cat.id));
                     tr.appendChild(catCell);
                 }
 
@@ -99,13 +102,16 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div class="task-main-row">
                                 <input type="checkbox" class="task-checkbox" ${task.done ? 'checked' : ''} onchange="toggleTask(${task.id}, this.checked)">
                                 <textarea class="task-text-input ${task.done ? 'done' : ''}" onblur="updateTaskText(${task.id}, this.value)" rows="1">${task.text}</textarea>
-                                <i class="fas fa-trash" style="cursor:pointer; color:#444; font-size:10px;" onclick="deleteTask(${task.id})"></i>
+                                <i class="fas fa-trash" data-task-id="${task.id}" style="cursor:pointer; color:#444; font-size:10px;"></i>
                             </div>
                             <div class="task-notes-container">
                                 ${taskNotesHtml}
                             </div>
                         </div>
                     `;
+                    // Attach delete event listener
+                    const deleteIcon = taskCell.querySelector('.fa-trash');
+                    if (deleteIcon) deleteIcon.addEventListener('click', () => window.deleteTask(task.id));
                 } else {
                     taskCell.innerHTML = '<span style="color:#444; font-style:italic; font-size:11px;">No tasks</span>';
                 }
@@ -363,7 +369,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         document.getElementById('pdf-btn').addEventListener('click', () => {
-            alert("PDF Export feature coming soon!");
+            // Open PDF in new tab (fullscreen)
+            const week_start = formatDate(state.currentWeekStart);
+            const pdfUrl = `/api/export-pdf?week_start=${week_start}`;
+            window.open(pdfUrl, '_blank');
         });
 
         document.getElementById('category-form').addEventListener('submit', async (e) => {
@@ -431,8 +440,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!confirm("Delete person?")) return;
         try {
             await fetch(`/api/people/${id}`, { method: 'DELETE' });
-            fetchInitData();
-            document.getElementById('team-modal').style.display = 'none';
+            await fetchInitData();
+            // Re-render the team list to update the modal
+            renderManageList('team-list', state.people, deletePerson);
         } catch (error) {
             console.error(error);
             alert("Error deleting person");
