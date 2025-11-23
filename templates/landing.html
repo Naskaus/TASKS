@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOPS - Welcome</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .landing-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+        }
+
+        .landing-logo {
+            max-width: 600px;
+            width: 80%;
+            margin-bottom: 60px;
+            filter: grayscale(100%);
+            /* Make sure it fits the minimalist theme if needed, but user provided a specific image */
+        }
+
+        /* Remove grayscale if the user wants the original image colors. The user said "minimalist but pro". 
+           The provided image looks black and white/gray already. */
+
+        .enter-btn {
+            background: transparent;
+            border: 1px solid #444;
+            color: #888;
+            padding: 15px 50px;
+            font-size: 14px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            text-decoration: none;
+            border-radius: 2px;
+            font-family: 'Segoe UI', sans-serif;
+            font-weight: 300;
+        }
+
+        .enter-btn:hover {
+            border-color: #fff;
+            color: #fff;
+            background: rgba(255, 255, 255, 0.02);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="landing-container">
+        <img src="{{ url_for('static', filename='img/logo.jpg') }}" alt="NOPS Logo" class="landing-logo">
+        <a href="{{ url_for('app_main') }}" class="enter-btn">Enter</a>
+    </div>
+</body>
+
+</html>

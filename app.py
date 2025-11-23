@@ -17,7 +17,11 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 
 @app.route('/')
-def index():
+def landing():
+    return render_template('landing.html')
+
+@app.route('/app')
+def app_main():
     return render_template('index.html')
 
 # --- API: INIT ---
