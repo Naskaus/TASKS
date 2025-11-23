@@ -11,6 +11,93 @@
     --font-main: 'Segoe UI', sans-serif;
 }
 
+body.light-mode {
+    --bg-dark: #f0f2f5;
+    --bg-panel: #ffffff;
+    --bg-header: #ffffff;
+    --border-color: #e4e6eb;
+    --text-main: #1c1e21;
+    --text-muted: #65676b;
+    --grid-line: #ddd;
+}
+
+/* Light Mode Overrides */
+body.light-mode .logo h1 {
+    color: #1c1e21;
+}
+
+body.light-mode .logo h2 {
+    color: #d63384;
+}
+
+body.light-mode .week-nav {
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+body.light-mode .header-controls button {
+    background: #fff;
+    color: var(--text-muted);
+}
+
+body.light-mode .header-controls button:hover {
+    background: #f0f2f5;
+    color: var(--accent-blue);
+}
+
+body.light-mode #matrix-table thead th {
+    background-color: #f7f8fa;
+    color: #65676b;
+    border-bottom: 2px solid #ddd;
+}
+
+body.light-mode .category-cell {
+    background-color: #fff !important;
+    border-right: 1px solid #ddd;
+}
+
+body.light-mode .task-text-input {
+    color: #1c1e21;
+}
+
+body.light-mode .who-select {
+    background: #f0f2f5;
+    border: 1px solid #ddd;
+    color: #1c1e21;
+}
+
+body.light-mode .note-textarea {
+    color: #444;
+}
+
+body.light-mode .note-textarea:focus {
+    background-color: #fff;
+}
+
+body.light-mode .modal-content {
+    background: #fff;
+    color: #1c1e21;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+body.light-mode .modal input {
+    background: #f0f2f5;
+    border: 1px solid #ddd;
+    color: #1c1e21;
+}
+
+body.light-mode .manage-list li {
+    border-bottom: 1px solid #eee;
+}
+
+body.light-mode .row-even td {
+    background: rgba(0, 0, 0, 0.01);
+}
+
+body.light-mode .row-odd td {
+    background: #fff;
+}
+
 * {
     box-sizing: border-box;
     margin: 0;
@@ -277,7 +364,7 @@ th.is-today {
     border: none;
     color: #fff;
     width: 100%;
-    font-family: 'Impact', sans-serif;
+    font-family: inherit;
     font-size: 13px;
     letter-spacing: 0.5px;
     resize: none;

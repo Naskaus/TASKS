@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
         categories: [],
         people: [],
         notes: [],
-        currentWeekStart: getLastFriday(new Date())
+        currentWeekStart: new Date()
     };
 
     // DOM Elements
@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     init();
 
     function init() {
-        state.currentWeekStart = getLastFriday(new Date());
+        state.currentWeekStart = new Date();
         fetchInitData();
         setupEventListeners();
     }
@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchNotes() {
         const start = formatDate(state.currentWeekStart);
-        const end = formatDate(addDays(state.currentWeekStart, 6));
+        const end = formatDate(addDays(state.currentWeekStart, 3));
         try {
             const response = await fetch(`/api/notes?start_date=${start}&end_date=${end}`);
             state.notes = await response.json();
@@ -66,7 +66,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     catCell.rowSpan = renderTasks.length;
                     catCell.innerHTML = `
                         <div class="category-label" style="background-color: ${cat.color}; border-color: ${cat.color}" onclick="editCategory(${cat.id})">
-                            ${cat.name} <i class="fas fa-pen" style="font-size: 0.8em; opacity: 0.5; margin-left: 5px;"></i>
+                            <span style="flex:1">${cat.name}</span>
+                            <span class="cat-controls" style="display:flex; gap:5px; align-items:center;">
+                                <i class="fas fa-chevron-up" style="cursor:pointer; opacity:0.7; font-size:0.8em;" onclick="event.stopPropagation(); moveCategory(${cat.id}, 'up')"></i>
+                                <i class="fas fa-chevron-down" style="cursor:pointer; opacity:0.7; font-size:0.8em;" onclick="event.stopPropagation(); moveCategory(${cat.id}, 'down')"></i>
+                                <i class="fas fa-pen" style="font-size: 0.8em; opacity: 0.5;"></i>
+                            </span>
                         </div>
                         <button class="add-task-btn" data-category-id="${cat.id}">+ ADD</button>
                     `;
@@ -148,7 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateHeaderDates() {
         const start = state.currentWeekStart;
-        const end = addDays(start, 6);
+        const end = addDays(start, 3);
         const monthNames = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
         monthYearDisplay.textContent = `${monthNames[start.getMonth()]} ${start.getFullYear()}`;
         const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -180,6 +185,41 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error(error);
             alert("Error adding task");
+        }
+    };
+
+    window.moveCategory = async (id, direction) => {
+        const index = state.categories.findIndex(c => c.id === id);
+        if (index === -1) return;
+
+        const targetIndex = direction === 'up' ? index - 1 : index + 1;
+        if (targetIndex < 0 || targetIndex >= state.categories.length) return;
+
+        const currentCat = state.categories[index];
+        const targetCat = state.categories[targetIndex];
+
+        // Swap orders
+        const tempOrder = currentCat.order;
+        currentCat.order = targetCat.order;
+        targetCat.order = tempOrder;
+
+        try {
+            await Promise.all([
+                fetch(`/api/categories/${currentCat.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ order: currentCat.order })
+                }),
+                fetch(`/api/categories/${targetCat.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ order: targetCat.order })
+                })
+            ]);
+            fetchInitData();
+        } catch (error) {
+            console.error(error);
+            alert("Error moving category");
         }
     };
 
@@ -282,19 +322,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function setupEventListeners() {
         document.getElementById('prev-week').addEventListener('click', () => {
-            state.currentWeekStart = addDays(state.currentWeekStart, -7);
+            state.currentWeekStart = addDays(state.currentWeekStart, -4);
             renderMatrix();
             fetchNotes().then(renderMatrix);
         });
 
         document.getElementById('next-week').addEventListener('click', () => {
-            state.currentWeekStart = addDays(state.currentWeekStart, 7);
+            state.currentWeekStart = addDays(state.currentWeekStart, 4);
             renderMatrix();
             fetchNotes().then(renderMatrix);
         });
 
         document.getElementById('today-btn').addEventListener('click', () => {
-            state.currentWeekStart = getLastFriday(new Date());
+            state.currentWeekStart = new Date();
             renderMatrix();
             fetchNotes().then(renderMatrix);
         });
@@ -393,6 +433,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert("Error creating category");
             }
         });
+
+        document.getElementById('theme-btn').addEventListener('click', () => {
+            document.body.classList.toggle('light-mode');
+            const isLight = document.body.classList.contains('light-mode');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+            updateThemeIcon(isLight);
+        });
+
+        // Initialize Theme
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'light') {
+            document.body.classList.add('light-mode');
+            updateThemeIcon(true);
+        }
+
+        function updateThemeIcon(isLight) {
+            const btn = document.getElementById('theme-btn');
+            const icon = btn.querySelector('i');
+            if (isLight) {
+                icon.className = 'fas fa-moon';
+                btn.title = "Switch to Dark Mode";
+            } else {
+                icon.className = 'fas fa-sun';
+                btn.title = "Switch to Light Mode";
+            }
+        }
 
         document.getElementById('team-form').addEventListener('submit', async (e) => {
             e.preventDefault();
