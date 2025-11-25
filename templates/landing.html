@@ -4,60 +4,602 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NOPS - Welcome</title>
+    <title>N.O.P.S. - Welcome</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+        }
+
         .landing-container {
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: var(--bg-dark);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%);
             color: var(--text-main);
+            position: relative;
+            perspective: 1000px;
         }
 
-        .landing-logo {
-            max-width: 600px;
-            width: 80%;
+        /* Animated Grid Background */
+        .grid-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(214, 48, 132, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(214, 48, 132, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            opacity: 0.3;
+            z-index: 1;
+        }
+
+        /* Floating Particles */
+        .particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #d63084;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #d63084;
+        }
+
+        /* Geometric Shapes */
+        .shapes {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            overflow: hidden;
+        }
+
+        .shape {
+            position: absolute;
+            border: 1px solid rgba(214, 48, 132, 0.3);
+        }
+
+        .shape.circle {
+            border-radius: 50%;
+        }
+
+        /* Scan Lines */
+        .scanline {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg,
+                    transparent,
+                    rgba(214, 48, 132, 0.5),
+                    transparent);
+            z-index: 3;
+        }
+
+        /* Title Container */
+        .logo-wrapper {
+            position: relative;
+            z-index: 10;
+            transform-style: preserve-3d;
             margin-bottom: 60px;
-            filter: grayscale(100%);
-            /* Make sure it fits the minimalist theme if needed, but user provided a specific image */
         }
 
-        /* Remove grayscale if the user wants the original image colors. The user said "minimalist but pro". 
-           The provided image looks black and white/gray already. */
+        /* Main Title */
+        .main-title {
+            font-size: 96px;
+            font-weight: 900;
+            font-family: 'Segoe UI', 'Arial Black', sans-serif;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 20px;
+            position: relative;
+            opacity: 0;
+            transform: translateY(50px) rotateX(-20deg);
+            text-shadow:
+                0 0 20px rgba(214, 48, 132, 0.8),
+                0 0 40px rgba(214, 48, 132, 0.5),
+                0 0 60px rgba(214, 48, 132, 0.3);
+        }
 
+        .main-title::before {
+            content: 'N.O.P.S.';
+            position: absolute;
+            top: 0;
+            left: 2px;
+            color: #d63084;
+            opacity: 0.7;
+            z-index: -1;
+            animation: glitch1 2s infinite;
+        }
+
+        .main-title::after {
+            content: 'N.O.P.S.';
+            position: absolute;
+            top: 0;
+            left: -2px;
+            color: #00f3ff;
+            opacity: 0.7;
+            z-index: -2;
+            animation: glitch2 3s infinite;
+        }
+
+        @keyframes glitch1 {
+
+            0%,
+            100% {
+                left: 2px;
+                opacity: 0.7;
+            }
+
+            25% {
+                left: -3px;
+                opacity: 0.5;
+            }
+
+            50% {
+                left: 3px;
+                opacity: 0.8;
+            }
+
+            75% {
+                left: -2px;
+                opacity: 0.6;
+            }
+        }
+
+        @keyframes glitch2 {
+
+            0%,
+            100% {
+                left: -2px;
+                opacity: 0.7;
+            }
+
+            33% {
+                left: 4px;
+                opacity: 0.6;
+            }
+
+            66% {
+                left: -4px;
+                opacity: 0.8;
+            }
+        }
+
+        /* Subtitle */
+        .subtitle {
+            font-size: 18px;
+            font-weight: 300;
+            font-family: 'Courier New', monospace;
+            color: #d63084;
+            letter-spacing: 4px;
+            margin-top: 20px;
+            opacity: 0;
+            transform: translateY(20px);
+            text-align: center;
+        }
+
+        /* Button */
         .enter-btn {
             background: transparent;
-            border: 1px solid #444;
-            color: #888;
-            padding: 15px 50px;
-            font-size: 14px;
-            letter-spacing: 4px;
+            border: 2px solid #d63084;
+            color: #d63084;
+            padding: 18px 60px;
+            font-size: 16px;
+            letter-spacing: 6px;
             text-transform: uppercase;
             cursor: pointer;
             transition: all 0.4s ease;
             text-decoration: none;
-            border-radius: 2px;
+            border-radius: 0;
             font-family: 'Segoe UI', sans-serif;
-            font-weight: 300;
+            font-weight: 600;
+            position: relative;
+            z-index: 10;
+            opacity: 0;
+            transform: translateY(30px);
+            overflow: hidden;
+        }
+
+        .enter-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(214, 48, 132, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .enter-btn:hover::before {
+            left: 100%;
         }
 
         .enter-btn:hover {
             border-color: #fff;
             color: #fff;
-            background: rgba(255, 255, 255, 0.02);
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.05);
+            background: rgba(214, 48, 132, 0.2);
+            box-shadow:
+                0 0 30px rgba(214, 48, 132, 0.5),
+                inset 0 0 30px rgba(214, 48, 132, 0.1);
+            transform: translateY(-5px);
+        }
+
+        /* Stats Display */
+        .stats-display {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #d63084;
+            opacity: 0;
+            z-index: 10;
+        }
+
+        .stat-line {
+            margin: 5px 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Corner Decorations */
+        .corner-decoration {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            border: 2px solid rgba(214, 48, 132, 0.3);
+            z-index: 5;
+        }
+
+        .corner-decoration.top-left {
+            top: 20px;
+            left: 20px;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .corner-decoration.bottom-right {
+            bottom: 20px;
+            right: 20px;
+            border-left: none;
+            border-top: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-title {
+                font-size: 48px;
+                letter-spacing: 10px;
+            }
+
+            .subtitle {
+                font-size: 14px;
+                letter-spacing: 2px;
+            }
+
+            .enter-btn {
+                padding: 15px 40px;
+                font-size: 14px;
+                letter-spacing: 4px;
+            }
         }
     </style>
 </head>
 
 <body>
     <div class="landing-container">
-        <img src="{{ url_for('static', filename='img/logo.jpg') }}" alt="NOPS Logo" class="landing-logo">
-        <a href="{{ url_for('app_main') }}" class="enter-btn">Enter</a>
+        <!-- Grid Background -->
+        <div class="grid-background"></div>
+
+        <!-- Particles Container -->
+        <div class="particles" id="particles"></div>
+
+        <!-- Geometric Shapes -->
+        <div class="shapes" id="shapes"></div>
+
+        <!-- Scan Lines -->
+        <div class="scanline" id="scanline1"></div>
+        <div class="scanline" id="scanline2"></div>
+
+        <!-- Corner Decorations -->
+        <div class="corner-decoration top-left"></div>
+        <div class="corner-decoration bottom-right"></div>
+
+        <!-- Main Title -->
+        <div class="logo-wrapper">
+            <div class="main-title" id="mainTitle">N.O.P.S.</div>
+            <div class="subtitle" id="subtitle">Naskaus's Operations Procedures Systems v0.22</div>
+        </div>
+
+        <!-- Enter Button -->
+        <a href="{{ url_for('app_main') }}" class="enter-btn" id="enterBtn">Enter System</a>
+
+        <!-- Stats Display -->
+        <div class="stats-display" id="stats">
+            <div class="stat-line">SYSTEM: OPERATIONAL</div>
+            <div class="stat-line">VERSION: 0.22</div>
+            <div class="stat-line">STATUS: <span id="statusText">LOADING...</span></div>
+        </div>
     </div>
+
+    <!-- Anime.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"></script>
+
+    <script>
+        // Create Particles
+        const particlesContainer = document.getElementById('particles');
+        for (let i = 0; i < 50; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.top = Math.random() * 100 + '%';
+            particlesContainer.appendChild(particle);
+        }
+
+        // Create Geometric Shapes
+        const shapesContainer = document.getElementById('shapes');
+        for (let i = 0; i < 10; i++) {
+            const shape = document.createElement('div');
+            shape.className = 'shape ' + (Math.random() > 0.5 ? 'circle' : 'square');
+            const size = 50 + Math.random() * 200;
+            shape.style.width = size + 'px';
+            shape.style.height = size + 'px';
+            shape.style.left = Math.random() * 100 + '%';
+            shape.style.top = Math.random() * 100 + '%';
+            shapesContainer.appendChild(shape);
+        }
+
+        // Animate Particles
+        anime({
+            targets: '.particle',
+            translateX: function () {
+                return anime.random(-500, 500);
+            },
+            translateY: function () {
+                return anime.random(-500, 500);
+            },
+            scale: function () {
+                return anime.random(0.5, 2);
+            },
+            opacity: [
+                { value: 0.8, duration: 1000 },
+                { value: 0.2, duration: 1000 }
+            ],
+            duration: function () {
+                return anime.random(3000, 8000);
+            },
+            easing: 'easeInOutQuad',
+            loop: true,
+            delay: function () {
+                return anime.random(0, 2000);
+            }
+        });
+
+        // Animate Shapes
+        anime({
+            targets: '.shape',
+            rotate: function () {
+                return anime.random(-180, 180);
+            },
+            translateX: function () {
+                return anime.random(-300, 300);
+            },
+            translateY: function () {
+                return anime.random(-300, 300);
+            },
+            scale: [
+                { value: 1.2, duration: 2000 },
+                { value: 0.8, duration: 2000 }
+            ],
+            opacity: [
+                { value: 0.6, duration: 2000 },
+                { value: 0.2, duration: 2000 }
+            ],
+            duration: 6000,
+            easing: 'easeInOutSine',
+            loop: true,
+            delay: function (el, i) {
+                return i * 200;
+            }
+        });
+
+        // Animate Scan Lines
+        anime({
+            targets: '#scanline1',
+            translateY: ['0vh', '100vh'],
+            duration: 3000,
+            easing: 'linear',
+            loop: true
+        });
+
+        anime({
+            targets: '#scanline2',
+            translateY: ['100vh', '0vh'],
+            duration: 4000,
+            easing: 'linear',
+            loop: true,
+            delay: 1500
+        });
+
+        // Animate Grid Background
+        anime({
+            targets: '.grid-background',
+            opacity: [0.1, 0.4, 0.1],
+            duration: 4000,
+            easing: 'easeInOutQuad',
+            loop: true
+        });
+
+        // Main Timeline - Entry Animation
+        const mainTimeline = anime.timeline({
+            easing: 'easeOutExpo',
+            duration: 1000
+        });
+
+        mainTimeline
+            .add({
+                targets: '.main-title',
+                opacity: [0, 1],
+                translateY: [50, 0],
+                rotateX: [-20, 0],
+                duration: 1500,
+                easing: 'easeOutBack'
+            })
+            .add({
+                targets: '.subtitle',
+                opacity: [0, 1],
+                translateY: [20, 0],
+                duration: 800
+            }, '-=1000')
+            .add({
+                targets: '#enterBtn',
+                opacity: [0, 1],
+                translateY: [30, 0],
+                duration: 800
+            }, '-=400')
+            .add({
+                targets: '#stats',
+                opacity: [0, 0.8],
+                translateX: [-30, 0],
+                duration: 600
+            }, '-=600')
+            .add({
+                targets: '.corner-decoration',
+                scale: [0, 1],
+                opacity: [0, 1],
+                duration: 800,
+                delay: anime.stagger(200)
+            }, '-=800');
+
+        // Title Hover Effect
+        const mainTitle = document.getElementById('mainTitle');
+        mainTitle.addEventListener('mouseenter', function () {
+            anime({
+                targets: mainTitle,
+                scale: 1.05,
+                textShadow: [
+                    '0 0 20px rgba(214, 48, 132, 0.8)',
+                    '0 0 60px rgba(214, 48, 132, 1)'
+                ],
+                duration: 600,
+                easing: 'easeOutQuad'
+            });
+        });
+
+        mainTitle.addEventListener('mouseleave', function () {
+            anime({
+                targets: mainTitle,
+                scale: 1,
+                duration: 600,
+                easing: 'easeOutQuad'
+            });
+        });
+
+        // Button Click Animation
+        const enterBtn = document.getElementById('enterBtn');
+        enterBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+
+            anime({
+                targets: '.landing-container',
+                scale: 1.2,
+                opacity: 0,
+                duration: 800,
+                easing: 'easeInBack',
+                complete: function () {
+                    window.location.href = enterBtn.href;
+                }
+            });
+
+            anime({
+                targets: '.particle',
+                scale: 3,
+                opacity: 0,
+                duration: 600,
+                delay: anime.stagger(10)
+            });
+        });
+
+        // Status Text Animation
+        const statusText = document.getElementById('statusText');
+        setTimeout(() => {
+            statusText.textContent = 'READY';
+            statusText.style.color = '#00ff00';
+
+            anime({
+                targets: statusText,
+                scale: [1.2, 1],
+                duration: 400
+            });
+        }, 2000);
+
+        // Glitch Effect on Random Intervals (subtle)
+        setInterval(() => {
+            if (Math.random() > 0.95) {
+                anime({
+                    targets: '.main-title',
+                    translateX: [
+                        { value: -5, duration: 50 },
+                        { value: 5, duration: 50 },
+                        { value: -3, duration: 50 },
+                        { value: 0, duration: 50 }
+                    ],
+                    easing: 'linear'
+                });
+            }
+        }, 2000);
+
+        // Corner Decoration Pulse
+        anime({
+            targets: '.corner-decoration',
+            borderColor: [
+                { value: 'rgba(214, 48, 132, 0.6)', duration: 2000 },
+                { value: 'rgba(214, 48, 132, 0.3)', duration: 2000 }
+            ],
+            easing: 'easeInOutQuad',
+            loop: true,
+            delay: anime.stagger(500)
+        });
+
+        // Mouse Move Parallax Effect
+        document.addEventListener('mousemove', function (e) {
+            const x = (e.clientX / window.innerWidth - 0.5) * 20;
+            const y = (e.clientY / window.innerHeight - 0.5) * 20;
+
+            anime({
+                targets: '.logo-wrapper',
+                translateX: x,
+                translateY: y,
+                duration: 1000,
+                easing: 'easeOutQuad'
+            });
+
+            anime({
+                targets: '.shapes',
+                translateX: -x * 0.5,
+                translateY: -y * 0.5,
+                duration: 2000,
+                easing: 'easeOutQuad'
+            });
+        });
+    </script>
 </body>
 
 </html>
