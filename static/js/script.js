@@ -4,7 +4,9 @@ document.addEventListener('DOMContentLoaded', () => {
         categories: [],
         people: [],
         notes: [],
-        currentWeekStart: new Date()
+        currentWeekStart: new Date(),
+        doneTimestamps: {},      // track when tasks were marked done (client-side)
+        expandedDone: {}         // per-category toggle for showing all done tasks
     };
 
     // DOM Elements
@@ -36,10 +38,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function fetchNotes() {
-        const start = formatDate(state.currentWeekStart);
-        const end = formatDate(addDays(state.currentWeekStart, 3));
         try {
-            const response = await fetch(`/api/notes?start_date=${start}&end_date=${end}`);
+            const response = await fetch('/api/notes');
             state.notes = await response.json();
         } catch (error) {
             console.error('Error fetching notes:', error);
@@ -52,7 +52,23 @@ document.addEventListener('DOMContentLoaded', () => {
         matrixBody.innerHTML = '';
 
         state.categories.forEach((cat, catIndex) => {
-            const tasks = cat.tasks;
+            // Split tasks into not-done and done, then sort done by last checked time
+            const allTasks = cat.tasks;
+            const undoneTasks = allTasks.filter(t => !t.done);
+            const doneTasks = allTasks.filter(t => t.done);
+
+            const doneWithMeta = doneTasks.map(t => {
+                const ts = state.doneTimestamps[t.id] || 0;
+                return Object.assign({}, t, { _doneTime: ts });
+            });
+
+            // Most recently checked first; tasks without timestamp fall to the bottom
+            doneWithMeta.sort((a, b) => b._doneTime - a._doneTime);
+
+            const showAllDone = !!state.expandedDone[cat.id];
+            const visibleDoneTasks = showAllDone ? doneWithMeta : doneWithMeta.slice(0, 3);
+
+            const tasks = [...undoneTasks, ...visibleDoneTasks];
             const renderTasks = tasks.length > 0 ? tasks : [null];
 
             renderTasks.forEach((task, index) => {
@@ -64,6 +80,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     const catCell = document.createElement('td');
                     catCell.className = 'category-cell';
                     catCell.rowSpan = renderTasks.length;
+                    const hasExtraDone = doneTasks.length > 3;
+                    const showAllDone = !!state.expandedDone[cat.id];
+
                     catCell.innerHTML = `
                         <div class="category-label" style="background-color: ${cat.color}; border-color: ${cat.color}" onclick="editCategory(${cat.id})">
                             <span style="flex:1">${cat.name}</span>
@@ -74,10 +93,16 @@ document.addEventListener('DOMContentLoaded', () => {
                             </span>
                         </div>
                         <button class="add-task-btn" data-category-id="${cat.id}">+ ADD</button>
+                        ${hasExtraDone ? `<button class="toggle-done-btn" data-category-id="${cat.id}" style="margin-top:6px; font-size:10px; padding:3px 6px; background:transparent; border:1px solid var(--border-color); color:var(--text-muted); cursor:pointer;">${showAllDone ? '▲ LESS DONE' : '▼ MORE DONE'}</button>` : ''}
                     `;
                     // Attach event listener after rendering
                     const addBtn = catCell.querySelector('.add-task-btn');
                     if (addBtn) addBtn.addEventListener('click', () => window.addTask(cat.id));
+                    const toggleDoneBtn = catCell.querySelector('.toggle-done-btn');
+                    if (toggleDoneBtn) toggleDoneBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        toggleDoneVisibility(cat.id);
+                    });
                     tr.appendChild(catCell);
                 }
 
@@ -91,16 +116,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 let taskNotesHtml = '';
 
                 if (task) {
-                    // Collect notes for preview
-                    for (let i = 0; i < 4; i++) {
-                        const date = addDays(state.currentWeekStart, i);
-                        const dateStr = formatDate(date);
-                        const note = state.notes.find(n => n.task_id === task.id && n.date === dateStr);
-                        if (note && note.content.trim() !== '') {
-                            const dayName = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][date.getDay()];
-                            taskNotesHtml += `<div class="task-note-preview"><span class="note-date">(${dayName} ${date.getDate()})</span> ${note.content}</div>`;
-                        }
-                    }
+                    // Collect ALL notes for this task (across all dates)
+                    const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                    const taskNotes = state.notes
+                        .filter(n => n.task_id === task.id && n.content && n.content.trim() !== '')
+                        .sort((a, b) => a.date.localeCompare(b.date));
+
+                    taskNotes.forEach(note => {
+                        // note.date is in YYYY-MM-DD format
+                        const [year, month, day] = note.date.split('-').map(Number);
+                        const jsDate = new Date(year, month - 1, day);
+                        const dayName = daysShort[jsDate.getDay()];
+                        taskNotesHtml += `
+                            <div class="task-note-preview">
+                                <span class="note-date">(${dayName} ${jsDate.getDate()})</span>
+                                ${note.content}
+                                <span class="note-delete" onclick="deleteNote(${task.id}, '${note.date}')" style="margin-left:6px; cursor:pointer; color:#666;">&times;</span>
+                            </div>
+                        `;
+                    });
 
                     taskCell.innerHTML = `
                         <div class="task-input-container">
@@ -244,12 +278,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.toggleTask = async (id, done) => {
         await updateTask(id, { done });
-        const input = document.querySelector(`textarea[onblur="updateTaskText(${id}, this.value)"]`);
-        if (input) {
-            if (done) input.classList.add('done');
-            else input.classList.remove('done');
+
+        // Track when the task was marked as done (for ordering completed tasks)
+        if (done) {
+            state.doneTimestamps[id] = Date.now();
+        } else {
+            delete state.doneTimestamps[id];
         }
+
+        // Recharger les données depuis l'API pour refléter l'état "done" côté backend
+        // (et donc reconstruire correctement la ligne avec la case cochée/décochée)
+        fetchInitData();
     };
+
+    function toggleDoneVisibility(categoryId) {
+        state.expandedDone[categoryId] = !state.expandedDone[categoryId];
+        renderMatrix();
+    }
 
     window.updateTaskText = async (id, text) => {
         await updateTask(id, { text });
@@ -300,6 +345,28 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    window.deleteNote = async (taskId, date) => {
+        if (!confirm("Delete note for this day?")) return;
+        try {
+            // Clear note content for this task/date (backend treats it as upsert)
+            await fetch('/api/notes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ task_id: taskId, date, content: '' })
+            });
+
+            // Update local cache: either remove the note or clear its content
+            const existingIndex = state.notes.findIndex(n => n.task_id == taskId && n.date == date);
+            if (existingIndex !== -1) {
+                state.notes.splice(existingIndex, 1);
+            }
+
+            renderMatrix();
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
     // --- Helpers ---
     function getLastFriday(d) {
         d = new Date(d);
@@ -322,21 +389,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function setupEventListeners() {
         document.getElementById('prev-week').addEventListener('click', () => {
-            state.currentWeekStart = addDays(state.currentWeekStart, -4);
+            state.currentWeekStart = addDays(state.currentWeekStart, -1);
             renderMatrix();
-            fetchNotes().then(renderMatrix);
         });
 
         document.getElementById('next-week').addEventListener('click', () => {
-            state.currentWeekStart = addDays(state.currentWeekStart, 4);
+            state.currentWeekStart = addDays(state.currentWeekStart, 1);
             renderMatrix();
-            fetchNotes().then(renderMatrix);
         });
 
         document.getElementById('today-btn').addEventListener('click', () => {
             state.currentWeekStart = new Date();
             renderMatrix();
-            fetchNotes().then(renderMatrix);
         });
 
         const catModal = document.getElementById('category-modal');

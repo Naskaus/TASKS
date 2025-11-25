@@ -240,11 +240,8 @@ def export_pdf():
         categories = Category.query.order_by(Category.order).all()
         people_dict = {p.id: p.name for p in Person.query.all()}
         
-        # Fetch notes for the current week
-        notes = Note.query.filter(
-            Note.date >= week_start.strftime('%Y-%m-%d'),
-            Note.date <= week_end.strftime('%Y-%m-%d')
-        ).all()
+        # Fetch all notes (not only for the current week), so PDF matches app behaviour
+        notes = Note.query.all()
         notes_by_task = {}
         for note in notes:
             if note.task_id not in notes_by_task:
@@ -325,27 +322,28 @@ def export_pdf():
         month_text = f"{month_names[week_start.month - 1]} {week_start.year}"
         elements.append(Paragraph(month_text, month_style))
         
-        days_short = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+        # Python weekday(): Monday=0 ... Sunday=6, so order must start at Monday
+        days_short = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
         week_text = f"{days_short[week_start.weekday()]} {week_start.day} - {days_short[week_end.weekday()]} {week_end.day}"
         elements.append(Paragraph(week_text, week_style))
         
         # Content - Categories and Tasks
         for category in categories:
-            if len(category.tasks) == 0:
+            # Filter to only tasks that are not done
+            active_tasks = [t for t in category.tasks if not t.done]
+            if len(active_tasks) == 0:
                 continue
-                
+
             # Category header
             elements.append(Paragraph(category.name.upper(), category_style))
-            
-            # Tasks under this category
-            for task in category.tasks:
+
+            # Tasks under this category (only not done)
+            for task in active_tasks:
                 # Task line with WHO? and text
                 who = people_dict.get(task.person_id, '--')
                 task_text = f"<b>[{who}]</b> {task.text}"
-                if task.done:
-                    task_text = f"<strike>{task_text}</strike>"
                 elements.append(Paragraph(task_text, task_style))
-                
+
                 # Note previews for this task
                 if task.id in notes_by_task:
                     for note in notes_by_task[task.id]:
@@ -354,7 +352,7 @@ def export_pdf():
                             day_name = days_short[note_date.weekday()]
                             note_text = f"({day_name} {note_date.day}) {note.content}"
                             elements.append(Paragraph(note_text, note_style))
-                
+
                 elements.append(Spacer(1, 0.1*inch))
         
         # Footer - App name small at bottom
