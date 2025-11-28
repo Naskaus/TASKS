@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHARK 2.0 - The Future of Soi Cowboy</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Montserrat:wght@300;400;700&display=swap"
+        rel="stylesheet">
+
+    <style>
+        /* ===== BASE RESET ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: #000;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* ===== 3D CANVAS BACKGROUND ===== */
+        #canvas3d {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 1;
+        }
+
+        /* ===== SCROLL CONTAINER ===== */
+        #main-scroll {
+            position: relative;
+            z-index: 2;
+            min-height: 600vh;
+        }
+
+        /* ===== SECTIONS ===== */
+        section {
+            position: sticky;
+            top: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+        }
+
+        section.visible {
+            opacity: 1;
+        }
+
+        .content {
+            max-width: 1200px;
+            width: 100%;
+            text-align: center;
+            pointer-events: auto;
+        }
+
+        .content.split {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 4rem;
+        }
+
+        .text-block {
+            flex: 1;
+        }
+
+        .image-block {
+            flex: 1;
+            max-width: 500px;
+        }
+
+        .image-block img {
+            width: 100%;
+            border-radius: 15px;
+            box-shadow: 0 0 40px rgba(44, 216, 255, 0.6);
+        }
+
+        /* ===== TYPOGRAPHY ===== */
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(3rem, 10vw, 7rem);
+            font-weight: 900;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: #2CD8FF;
+            text-shadow: 0 0 30px #2CD8FF, 0 0 60px #2CD8FF;
+            margin-bottom: 1rem;
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+
+            0%,
+            100% {
+                text-shadow: 0 0 30px #2CD8FF, 0 0 60px #2CD8FF;
+            }
+
+            50% {
+                text-shadow: 0 0 50px #2CD8FF, 0 0 100px #2CD8FF;
+            }
+        }
+
+        h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(2rem, 5vw, 4rem);
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+        }
+
+        .tagline {
+            font-size: clamp(1rem, 2.5vw, 1.8rem);
+            font-weight: 300;
+            letter-spacing: 0.5em;
+            text-transform: uppercase;
+            opacity: 0.8;
+            margin-bottom: 2rem;
+        }
+
+        .description {
+            font-size: clamp(1rem, 1.8vw, 1.3rem);
+            line-height: 1.8;
+            font-weight: 300;
+            opacity: 0.9;
+        }
+
+        /* ===== COLORS ===== */
+        .cyan {
+            color: #2CD8FF;
+        }
+
+        .pink {
+            color: #FF2E9F;
+        }
+
+        .purple {
+            color: #9D4EDD;
+        }
+
+        .white {
+            color: #E0F7FF;
+        }
+
+        /* ===== CTA BUTTON ===== */
+        .cta-btn {
+            display: inline-block;
+            margin-top: 3rem;
+            padding: 1.5rem 4rem;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: #2CD8FF;
+            background: transparent;
+            border: 3px solid #2CD8FF;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s ease;
+        }
+
+        .cta-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: #2CD8FF;
+            transition: left 0.4s ease;
+            z-index: -1;
+        }
+
+        .cta-btn:hover {
+            color: #000;
+            box-shadow: 0 0 30px #2CD8FF;
+        }
+
+        .cta-btn:hover::before {
+            left: 0;
+        }
+
+        /* ===== MODELS GRID ===== */
+        .models-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .model-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 15px;
+            box-shadow: 0 0 40px rgba(255, 46, 159, 0.5);
+            transition: transform 0.4s ease;
+        }
+
+        .model-card:hover {
+            transform: scale(1.05);
+        }
+
+        .model-card img {
+            width: 100%;
+            height: 450px;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .content.split {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .models-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .model-card img {
+                height: 350px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 3D Canvas Background -->
+    <canvas id="canvas3d"></canvas>
+
+    <!-- Main Scroll Container -->
+    <div id="main-scroll">
+
+        <!-- SECTION 0: HERO -->
+        <section id="sec0">
+            <div class="content">
+                <h1>SHARK 2.0</h1>
+                <p class="tagline">REBUILD. REBORN.</p>
+            </div>
+        </section>
+
+        <!-- SECTION 1: DESIGN -->
+        <section id="sec1">
+            <div class="content split">
+                <div class="text-block">
+                    <h2 class="cyan">IMMERSIVE<br>DESIGN</h2>
+                    <p class="description">Experience the future of nightlife. A cyberpunk sanctuary where neon dreams
+                        come alive.</p>
+                </div>
+                <div class="image-block">
+                    <img src="/media/FUTURISTIC DESIGN.jpg" alt="Futuristic Design">
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: COCKTAILS -->
+        <section id="sec2">
+            <div class="content split">
+                <div class="image-block">
+                    <img src="/media/COCKTAILS.jpg" alt="Signature Cocktails">
+                </div>
+                <div class="text-block">
+                    <h2 class="pink">SIGNATURE<br>COCKTAILS</h2>
+                    <p class="description">Crafted elixirs for the electric soul. Neon nights fueled by liquid artistry.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: MERCH -->
+        <section id="sec3">
+            <div class="content split">
+                <div class="text-block">
+                    <h2 class="purple">EXCLUSIVE<br>MERCH</h2>
+                    <p class="description">Wear the future. Limited edition cyberwear that defines the new era of Soi
+                        Cowboy.</p>
+                </div>
+                <div class="image-block">
+                    <img src="/media/MERCH.jpg" alt="Exclusive Merchandise">
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: MODELS -->
+        <section id="sec4">
+            <div class="content">
+                <h2 class="pink">ELITE<br>MODELS</h2>
+                <div class="models-grid">
+                    <div class="model-card">
+                        <img src="/media/DM_October 24, 2025_072-Edit-Edit.jpg" alt="Elite Model 1">
+                    </div>
+                    <div class="model-card">
+                        <img src="/media/DM_October 25, 2025_320-Edit-Edit.jpg" alt="Elite Model 2">
+                    </div>
+                    <div class="model-card">
+                        <img src="/media/DM_October 25, 2025_549-Edit-Edit.jpg" alt="Elite Model 3">
+                    </div>
+                    <div class="model-card">
+                        <img src="/media/DM_October 25, 2025_587-Edit-Edit.jpg" alt="Elite Model 4">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 5: CTA -->
+        <section id="sec5">
+            <div class="content">
+                <h2 class="white">OPEN NOW</h2>
+                <p class="tagline">SOI COWBOY · BANGKOK</p>
+                <a href="/shark" class="cta-btn">BOOK VIP TABLE</a>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Three.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <!-- Main Script -->
+    <script>
+        /* ===== SCENE SETUP ===== */
+        const canvas = document.getElementById('canvas3d');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        camera.position.z = 8;
+
+        /* ===== LIGHTS ===== */
+        const ambientLight = new THREE.AmbientLight(0x2CD8FF, 0.3);
+        scene.add(ambientLight);
+
+        const light1 = new THREE.PointLight(0x2CD8FF, 2, 100);
+        light1.position.set(5, 5, 5);
+        scene.add(light1);
+
+        const light2 = new THREE.PointLight(0xFF2E9F, 2, 100);
+        light2.position.set(-5, -5, 5);
+        scene.add(light2);
+
+        /* ===== PARTICLES ===== */
+        const particlesGeo = new THREE.BufferGeometry();
+        const particleCount = 200;
+        const positions = new Float32Array(particleCount * 3);
+
+        for (let i = 0; i < particleCount * 3; i += 3) {
+            positions[i] = (Math.random() - 0.5) * 50;
+            positions[i + 1] = (Math.random() - 0.5) * 50;
+            positions[i + 2] = (Math.random() - 0.5) * 40 - 10;
+        }
+
+        particlesGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const particlesMat = new THREE.PointsMaterial({
+            color: 0x2CD8FF,
+            size: 0.1,
+            transparent: true,
+            opacity: 0.6,
+            blending: THREE.AdditiveBlending
+        });
+
+        const particlesMesh = new THREE.Points(particlesGeo, particlesMat);
+        scene.add(particlesMesh);
+
+        /* ===== 3D SHAPES ===== */
+        const wireMat = new THREE.MeshBasicMaterial({
+            color: 0x2CD8FF,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.8
+        });
+
+        // Shape 0: Pyramid
+        const shape0 = new THREE.Mesh(new THREE.ConeGeometry(2, 3, 4), wireMat.clone());
+        shape0.rotation.x = Math.PI;
+        scene.add(shape0);
+
+        // Shape 1: Torus
+        const shape1 = new THREE.Mesh(new THREE.TorusGeometry(2, 0.5, 16, 50), wireMat.clone());
+        shape1.visible = false;
+        scene.add(shape1);
+
+        // Shape 2: Icosahedron
+        const shape2 = new THREE.Mesh(new THREE.IcosahedronGeometry(2, 0), wireMat.clone());
+        shape2.visible = false;
+        scene.add(shape2);
+
+        // Shape 3: Box
+        const shape3 = new THREE.Mesh(new THREE.BoxGeometry(2.5, 2.5, 2.5), wireMat.clone());
+        shape3.visible = false;
+        scene.add(shape3);
+
+        // Shape 4: Sphere
+        const shape4 = new THREE.Mesh(new THREE.SphereGeometry(2, 20, 20), wireMat.clone());
+        shape4.visible = false;
+        scene.add(shape4);
+
+        // Shape 5: Star
+        const shape5 = new THREE.Group();
+        for (let i = 0; i < 8; i++) {
+            const spike = new THREE.Mesh(new THREE.ConeGeometry(0.15, 3, 4), wireMat.clone());
+            const angle = (i / 8) * Math.PI * 2;
+            spike.position.x = Math.cos(angle) * 2;
+            spike.position.z = Math.sin(angle) * 2;
+            spike.rotation.z = angle;
+            shape5.add(spike);
+        }
+        shape5.visible = false;
+        scene.add(shape5);
+
+        const shapes = [shape0, shape1, shape2, shape3, shape4, shape5];
+        const shapeColors = [0x2CD8FF, 0x2CD8FF, 0xFF2E9F, 0x9D4EDD, 0xFF2E9F, 0xE0F7FF];
+
+        /* ===== SCROLL HANDLING ===== */
+        const sections = document.querySelectorAll('section');
+        let currentSection = 0;
+
+        function updateScene() {
+            const scrollHeight = document.getElementById('main-scroll').scrollHeight - window.innerHeight;
+            const scrollProgress = Math.max(0, Math.min(1, window.scrollY / scrollHeight));
+
+            // Calculate active section (0-5)
+            const activeIdx = Math.floor(scrollProgress * 6);
+            const clampedIdx = Math.min(activeIdx, 5);
+
+            // Update section visibility
+            sections.forEach((sec, idx) => {
+                if (idx === clampedIdx) {
+                    sec.classList.add('visible');
+                } else {
+                    sec.classList.remove('visible');
+                }
+            });
+
+            // Update 3D shapes
+            shapes.forEach((shape, idx) => {
+                if (idx === clampedIdx) {
+                    shape.visible = true;
+                    if (shape.material) {
+                        if (Array.isArray(shape.material)) {
+                            shape.material.forEach(m => m.color.setHex(shapeColors[idx]));
+                        } else {
+                            shape.material.color.setHex(shapeColors[idx]);
+                        }
+                    } else if (shape.children.length > 0) {
+                        shape.children.forEach(child => {
+                            if (child.material) child.material.color.setHex(shapeColors[idx]);
+                        });
+                    }
+                } else {
+                    shape.visible = false;
+                }
+            });
+
+            currentSection = clampedIdx;
+        }
+
+        window.addEventListener('scroll', updateScene);
+
+        /* ===== ANIMATION LOOP ===== */
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Rotate particles
+            particlesMesh.rotation.y += 0.001;
+
+            // Rotate active shape
+            if (shape0.visible) {
+                shape0.rotation.y += 0.01;
+            }
+            if (shape1.visible) {
+                shape1.rotation.x += 0.01;
+                shape1.rotation.y += 0.01;
+            }
+            if (shape2.visible) {
+                shape2.rotation.x += 0.015;
+                shape2.rotation.y += 0.01;
+            }
+            if (shape3.visible) {
+                shape3.rotation.x += 0.01;
+                shape3.rotation.y += 0.01;
+            }
+            if (shape4.visible) {
+                shape4.rotation.x += 0.01;
+                shape4.rotation.y += 0.015;
+            }
+            if (shape5.visible) {
+                shape5.rotation.y += 0.02;
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        /* ===== WINDOW RESIZE ===== */
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        /* ===== START ===== */
+        animate();
+        updateScene();
+    </script>
+</body>
+
+</html>

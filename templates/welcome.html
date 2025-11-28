@@ -265,6 +265,15 @@
             border-color: var(--neon-orange);
         }
 
+        /* SHARK 2.0 BUTTON STYLE */
+        .btn-shark:hover {
+            background: rgba(0, 100, 255, 0.1);
+        }
+
+        .btn-shark:hover::before {
+            border-color: #0066ff;
+        }
+
 
         /* CHECKLIST STYLES */
         .cyber-check-item {
@@ -408,8 +417,7 @@
 
                     <!-- 1. TASKS (External) -->
                     <div class="portal-btn-wrapper reveal-on-scroll" data-delay="0">
-                        <a href="/landing"
-                            class="cyber-btn btn-tasks group block p-8 h-full">
+                        <a href="/landing" class="cyber-btn btn-tasks group block p-8 h-full">
                             <div class="flex justify-between items-start mb-6">
                                 <span
                                     class="text-5xl text-gray-800 font-bold group-hover:text-cyan-400 transition-colors duration-300">01</span>
@@ -520,11 +528,36 @@
                         </a>
                     </div>
 
+                    <!-- 5. SHARK 2.0 (New Portal) -->
+                    <div class="portal-btn-wrapper reveal-on-scroll" data-delay="400">
+                        <a href="/shark" class="cyber-btn btn-shark group block p-8 h-full">
+                            <div class="flex justify-between items-start mb-6">
+                                <span
+                                    class="text-5xl text-gray-800 font-bold group-hover:text-blue-400 transition-colors duration-300">05</span>
+                                <div class="p-3 bg-blue-900/20 rounded-lg group-hover:bg-blue-500/20 transition-colors">
+                                    <svg class="w-8 h-8 text-blue-600 group-hover:text-blue-400 group-hover:shadow-[0_0_15px_blue]"
+                                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                            d="M13 10V3L4 14h7v7l9-11h-7z">
+                                        </path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <h4
+                                class="text-3xl text-white font-bold mb-2 tracking-wide group-hover:translate-x-2 transition-transform">
+                                SHARK 2.0</h4>
+                            <p class="text-xs text-gray-400 font-mono group-hover:text-blue-200">/ NEXT_GEN /
+                                DEEP_SYSTEM</p>
+                            <div
+                                class="absolute bottom-4 right-4 text-[10px] text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity tracking-widest">
+                                ENTER_VOID >>
+                            </div>
+                        </a>
+                    </div>
+
                 </div>
             </section>
         </div>
-
-
         <!-- ============================================ -->
         <!-- VIEW: PROCEDURES MENU (New Selection)        -->
         <!-- ============================================ -->
@@ -814,14 +847,12 @@
                     class="text-xs text-cyan-400 hover:text-white border border-cyan-500/50 px-4 py-2 hover:bg-cyan-900/50 transition-colors uppercase font-bold tracking-widest">
                     < Back to Select </button>
             </div>
-
             <div class="flex justify-end mb-6">
                 <button onclick="clearCheckboxes()"
                     class="cyber-btn px-6 py-3 text-sm text-cyan-300 font-mono tracking-wider hover:text-white border border-cyan-500/30">
                     ↻ RESET PROTOCOLS
                 </button>
             </div>
-
             <div class="max-w-4xl mx-auto space-y-12 pb-20">
                 <!-- Placeholder content (cloned from Shark for demo) -->
                 <div class="p-6 border border-red-500/30 bg-red-900/10 rounded-lg text-center">
@@ -829,7 +860,6 @@
                     <p class="text-xs text-gray-400 font-mono">This checklist uses the default protocol structure.
                         Content to be updated.</p>
                 </div>
-
                 <!-- Copied Shark items for demo structure -->
                 <div class="procedure-group">
                     <div
@@ -869,14 +899,12 @@
                     class="text-xs text-cyan-400 hover:text-white border border-cyan-500/50 px-4 py-2 hover:bg-cyan-900/50 transition-colors uppercase font-bold tracking-widest">
                     < Back to Select </button>
             </div>
-
             <div class="flex justify-end mb-6">
                 <button onclick="clearCheckboxes()"
                     class="cyber-btn px-6 py-3 text-sm text-cyan-300 font-mono tracking-wider hover:text-white border border-cyan-500/30">
                     ↻ RESET PROTOCOLS
                 </button>
             </div>
-
             <div class="max-w-4xl mx-auto space-y-12 pb-20">
                 <!-- Placeholder content -->
                 <div class="p-6 border border-orange-500/30 bg-orange-900/10 rounded-lg text-center">
@@ -884,7 +912,6 @@
                     <p class="text-xs text-gray-400 font-mono">This checklist uses the default protocol structure.
                         Content to be updated.</p>
                 </div>
-
                 <div class="procedure-group">
                     <div
                         class="role-header p-4 mb-4 flex items-center justify-between border-l-4 border-orange-500 bg-gradient-to-r from-orange-900/20 to-transparent">
@@ -902,12 +929,11 @@
                 </div>
             </div>
         </div>
-
     </main>
 
     <footer class="border-t border-white/5 bg-black py-8 text-center relative z-10">
-        <p class="text-[10px] text-gray-700 font-mono uppercase tracking-widest">
-            N.O.P.S. System v4.0.2 // Access Restricted
+        <p class="text-[10px] text-gray-700 font-mono uppercase tracking-widest">N.O.P.S. System v4.0.2 // Access
+            Restricted
         </p>
     </footer>
 
@@ -929,6 +955,7 @@
         document.addEventListener('mousedown', () => {
             cursorCircle.style.transform = "translate(-50%, -50%) scale(0.5)";
         });
+
         document.addEventListener('mouseup', () => {
             cursorCircle.style.transform = "translate(-50%, -50%) scale(1)";
         });
@@ -968,31 +995,30 @@
         const textWrapper = document.querySelector('.ml16');
         textWrapper.innerHTML = textWrapper.textContent.replace(/\S/g, "<span class='letter inline-block'>$&</span>");
 
-        var tl = anime.timeline({ loop: false });
+        var tl = anime.timeline({
+            loop: false
+        });
 
-        tl
-            .add({
-                targets: '.ml16 .letter',
-                translateY: [-100, 0],
-                opacity: [0, 1],
-                easing: "easeOutExpo",
-                duration: 1400,
-                delay: (el, i) => 100 * i
-            })
-            .add({
-                targets: '.sub-title',
-                opacity: [0, 1],
-                scale: [0.9, 1],
-                duration: 1500,
-                easing: "easeOutQuad"
-            }, '-=800')
-            .add({
-                targets: '.status-text',
-                opacity: [0, 1],
-                translateY: [20, 0],
-                duration: 1000,
-                easing: "easeOutQuad"
-            }, '-=1000');
+        tl.add({
+            targets: '.ml16 .letter',
+            translateY: [-100, 0],
+            opacity: [0, 1],
+            easing: "easeOutExpo",
+            duration: 1400,
+            delay: (el, i) => 100 * i
+        }).add({
+            targets: '.sub-title',
+            opacity: [0, 1],
+            scale: [0.9, 1],
+            duration: 1500,
+            easing: "easeOutQuad"
+        }, '-=800').add({
+            targets: '.status-text',
+            opacity: [0, 1],
+            translateY: [20, 0],
+            duration: 1000,
+            easing: "easeOutQuad"
+        }, '-=1000');
 
 
         // --- SCROLL REVEAL ---
@@ -1021,7 +1047,9 @@
                     observer.unobserve(entry.target);
                 }
             });
-        }, { threshold: 0.1 });
+        }, {
+            threshold: 0.1
+        });
 
         document.querySelectorAll('.reveal-on-scroll').forEach(el => observer.observe(el));
 
@@ -1043,7 +1071,11 @@
                     void targetView.offsetWidth;
                     targetView.classList.add('active');
                     targetView.style.opacity = '1';
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
 
                     // Animation pour les checklists
                     if (viewName.includes('checklist')) {
@@ -1077,10 +1109,10 @@
                 duration: 300,
                 easing: 'easeInOutQuad'
             });
-            const checkboxes = document.querySelectorAll('.cyber-checkbox-input');
-            checkboxes.forEach(cb => cb.checked = false);
+            const checkboxes = document.querySelectorAll('.cyber-checkbox-ui');
+            // Note: Logic for clearing checkboxes might need adjustment if using custom UI
+            document.querySelectorAll('.cyber-checkbox-input').forEach(cb => cb.checked = false);
         }
-
     </script>
 </body>
 

@@ -24,6 +24,19 @@ def home():
 def landing():
     return render_template('landing.html')
 
+@app.route('/shark')
+def shark():
+    return render_template('shark.html')
+
+@app.route('/cowboy')
+def cowboy():
+    return render_template('cowboy.html')
+
+@app.route('/media/<path:filename>')
+def serve_media(filename):
+    from flask import send_from_directory
+    return send_from_directory('media', filename)
+
 @app.route('/tasks')
 def app_main():
     return render_template('index.html')
